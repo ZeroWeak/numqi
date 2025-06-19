@@ -1,10 +1,10 @@
-id: 178
+id: 165
 user: eq19
-span: span-159
+span: span-146
 title: eQuantum
 baseurl: /numqi
 repository: ZeroWeak/numqi
-action: ZeroWeak/pysme/actions/runs/15290205217
+action: ZeroWeak/pysme/actions/runs/15764226429
 description: eQuantum Project - Zero Weak Boson
 
 #debug:
@@ -48,6 +48,6 @@ plugins:
   - jekyll-optional-front-matter
 
 track:
-  spin: [13, 8]
+  spin: [12, 8]
   pinned: [maps, feed, lexer, parser, syntax, grammar, pysme, numqi, pyrate, nthmc, spectral, algorithms]
   organization: [Chetabahana, FeedMapping, GlobalZones, HybridModels, JunctionTerms, KernelPatterns, MappingSystem, NeuralSystem, ObjectModules, VirtualNetworks, WeakNegative, WeakPositive, ZeroWeak]
