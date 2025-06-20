@@ -38,12 +38,12 @@ git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 git config --global credential.helper store
 echo "https://${GITHUB_ACTOR}:${GH_TOKEN}@github.com" > ~/.git-credentials
 
-export TARGET_REPOSITORY=$(curl -s -H "Authorization: token $GH_TOKEN" -H "Accept: application/vnd.github.v3+json" \
-  "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/variables/TARGET_REPOSITORY" | jq -r '.value')
+export DEFAULT_BRANCH=$(curl -s -H "Authorization: token $GH_TOKEN" \
+  https://api.github.com/repos/$GITHUB_REPOSITORY | jq -r .default_branch)
 export RERUN_RUNNER=$(curl -s -H "Authorization: token $GH_TOKEN" -H "Accept: application/vnd.github.v3+json" \
   "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/variables/RERUN_RUNNER" | jq -r '.value')
-export DEFAULT_BRANCH=$(curl -s -H "Authorization: token $GH_TOKEN" \
-  https://api.github.com/repos/$TARGET_REPOSITORY | jq -r .default_branch)
+export TARGET_REPOSITORY=$(curl -s -H "Authorization: token $GH_TOKEN" -H "Accept: application/vnd.github.v3+json" \
+  "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/variables/TARGET_REPOSITORY" | jq -r '.value')
 
 echo 'RERUN_RUNNER='${RERUN_RUNNER} >> ${GITHUB_ENV}
 echo 'DEFAULT_BRANCH='${DEFAULT_BRANCH} >> ${GITHUB_ENV}
@@ -106,14 +106,11 @@ if [[ "${JOBS_ID}" == "1" ]]; then
     rm -rf .dockerignore user_data && mv -f $1/user_data .
     echo -e "\n$hr\nWORKSPACE\n$hr" && ls -al .
 
-    # Loop through each yml file and update it in target repository 
-    for file in $(find .github/workflows -maxdepth 1 -type f -name "*.yml"); do
-      echo "Updating $file... in ${TARGET_REPOSITORY}"
-      gh api --method PUT "/repos/${TARGET_REPOSITORY}/contents/$file" \
-        -f sha="$(gh api "/repos/${TARGET_REPOSITORY}/contents/$file" --jq '.sha')" \
-        -f message="Update file" \
-        -f content="$(base64 -w0 "$file")" > /dev/null
-    done
+    # Fetch SHA, encode new content, and update in one step
+    gh api --method PUT /repos/${TARGET_REPOSITORY}/contents/.github/workflows/main.yml \
+      -f sha="$(gh api /repos/${TARGET_REPOSITORY}/contents/.github/workflows/main.yml --jq '.sha')" \
+      -f message="Update file" -f content="$(base64 -w0 .github/workflows/main.yml)" > /dev/null
+
   fi
 
 elif [[ "${JOBS_ID}" == "2" ]]; then
