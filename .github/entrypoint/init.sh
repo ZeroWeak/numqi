@@ -106,11 +106,14 @@ if [[ "${JOBS_ID}" == "1" ]]; then
     rm -rf .dockerignore user_data && mv -f $1/user_data .
     echo -e "\n$hr\nWORKSPACE\n$hr" && ls -al .
 
-    # Fetch SHA, encode new content, and update in one step
-    gh api --method PUT /repos/${TARGET_REPOSITORY}/contents/.github/workflows/main.yml \
-      -f sha="$(gh api /repos/${TARGET_REPOSITORY}/contents/.github/workflows/main.yml --jq '.sha')" \
-      -f message="Update file" -f content="$(base64 -w0 .github/workflows/main.yml)" > /dev/null
-
+    # Loop through each yml file and update it in target repository 
+    for file in $(find .github/workflows -maxdepth 1 -type f -name "*.yml"); do
+      echo "Updating $file... in ${TARGET_REPOSITORY}"
+      gh api --method PUT "/repos/${TARGET_REPOSITORY}/contents/$file" \
+        -f sha="$(gh api "/repos/${TARGET_REPOSITORY}/contents/$file" --jq '.sha')" \
+        -f message="Update file" \
+        -f content="$(base64 -w0 "$file")" > /dev/null
+    done
   fi
 
 elif [[ "${JOBS_ID}" == "2" ]]; then
